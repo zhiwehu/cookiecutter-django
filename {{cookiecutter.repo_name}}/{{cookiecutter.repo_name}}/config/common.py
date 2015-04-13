@@ -13,10 +13,24 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 import os
 from os.path import join, dirname
 
-from configurations import Configuration, values
-
 BASE_DIR = dirname(dirname(__file__))
 
+{% if cookiecutter.django_version == 1.8 %}
+# Normally you should not import ANYTHING from Django directly
+# into your settings, but ImproperlyConfigured is an exception.
+from django.core.exceptions import ImproperlyConfigured
+
+def get_env_variable(var_name):
+    """Get the environment variable or return exception."""
+    try:
+        return os.environ[var_name]
+    except KeyError:
+        error_msg = "Set the %s environment variable" % var_name
+        raise ImproperlyConfigured(error_msg)
+
+
+{% else %}
+from configurations import Configuration, values
 
 class Common(Configuration):
 
@@ -272,3 +286,5 @@ class Common(Configuration):
         cls.DATABASES['default']['ATOMIC_REQUESTS'] = True
 
     # Your common stuff: Below this line define 3rd party library settings
+
+{% endif %}

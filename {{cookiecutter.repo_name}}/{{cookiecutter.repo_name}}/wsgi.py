@@ -19,13 +19,20 @@ import os
 # if running multiple sites in the same mod_wsgi process. To fix this, use
 # mod_wsgi daemon mode with each site in its own daemon process, or use
 # os.environ["DJANGO_SETTINGS_MODULE"] = "{{ repo_name }}.settings"
+{% if cookiecutter.django_version == "1.8" %}
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.production")
+{% else %}
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config")
 os.environ.setdefault("DJANGO_CONFIGURATION", "Production")
-
+{% endif %}
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.
+{% if cookiecutter.django_version == "1.8" %}
 from configurations.wsgi import get_wsgi_application  # noqa
+{% else %}
+from django.core.wsgi import get_wsgi_application
+{% endif %}
 application = get_wsgi_application()
 
 # Apply WSGI middleware here.

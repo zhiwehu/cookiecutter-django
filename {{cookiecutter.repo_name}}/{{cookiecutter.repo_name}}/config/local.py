@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 '''
 Local Configurations
 
@@ -6,6 +5,12 @@ Local Configurations
 - Uses console backend for emails
 - Use Django Debug Toolbar
 '''
+
+{% if cookiecutter.django_version == 1.8 %}
+{% include cookiecutter.repo_name + '/' + cookiecutter.repo_name + '/' + config +'/local-1.8.py' %}
+{% else %}
+# -*- coding: utf-8 -*-
+
 from configurations import values
 from .common import Common
 
@@ -42,3 +47,5 @@ class Local(Common):
     # end django-debug-toolbar
 
     # Your local stuff: Below this line define 3rd party library settings
+
+{% endif %}
