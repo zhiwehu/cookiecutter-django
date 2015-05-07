@@ -9,8 +9,9 @@ Production Configurations
 '''
 from __future__ import absolute_import, unicode_literals
 
-
+{% if cookiecutter.use_aws != 'y' -%}
 from boto.s3.connection import OrdinaryCallingFormat
+{%- endif %}
 from django.utils import six
 
 from .common import *  # noqa
@@ -42,7 +43,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool("DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", def
 SECURE_BROWSER_XSS_FILTER = True
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = True
-SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
+SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=False)
 
 # SITE CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -58,9 +59,11 @@ INSTALLED_APPS += ("gunicorn", )
 # Uploaded Media Files
 # ------------------------
 # See: http://django-storages.readthedocs.org/en/latest/index.html
+{% if cookiecutter.use_aws != 'y' -%}
 INSTALLED_APPS += (
     'storages',
 )
+
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 
 AWS_ACCESS_KEY_ID = env('DJANGO_AWS_ACCESS_KEY_ID')
@@ -83,6 +86,8 @@ AWS_HEADERS = {
 
 # URL that handles the media served from MEDIA_ROOT, used for managing stored files.
 MEDIA_URL = 'https://s3.amazonaws.com/%s/' % AWS_STORAGE_BUCKET_NAME
+AWS_PRELOAD_METADATA = True
+{%- endif %}
 
 # Static Assests
 # ------------------------
@@ -94,7 +99,6 @@ STATIC_URL = MEDIA_URL
 
 # See: https://github.com/antonagestam/collectfast
 # For Django 1.7+, 'collectfast' should come before 'django.contrib.staticfiles'
-AWS_PRELOAD_METADATA = True
 INSTALLED_APPS = ('collectfast', ) + INSTALLED_APPS
 {%- endif %}
 
@@ -102,12 +106,12 @@ INSTALLED_APPS = ('collectfast', ) + INSTALLED_APPS
 # ------------------------------------------------------------------------------
 DEFAULT_FROM_EMAIL = env('DJANGO_DEFAULT_FROM_EMAIL',
                          default='{{cookiecutter.project_name}} <noreply@{{cookiecutter.domain_name}}>')
-EMAIL_HOST = env("DJANGO_EMAIL_HOST", default='smtp.sendgrid.com')
-EMAIL_HOST_PASSWORD = env("SENDGRID_PASSWORD")
+#EMAIL_HOST = env("DJANGO_EMAIL_HOST", default='smtp.sendgrid.com')
+#EMAIL_HOST_PASSWORD = env("SENDGRID_PASSWORD")
 EMAIL_HOST_USER = env('SENDGRID_USERNAME')
-EMAIL_PORT = env.int("EMAIL_PORT", default=587)
-EMAIL_SUBJECT_PREFIX = env("EMAIL_SUBJECT_PREFIX", default='[{{cookiecutter.project_name}}] ')
-EMAIL_USE_TLS = True
+#EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+#EMAIL_SUBJECT_PREFIX = env("EMAIL_SUBJECT_PREFIX", default='[{{cookiecutter.project_name}}] ')
+#EMAIL_USE_TLS = True
 SERVER_EMAIL = EMAIL_HOST_USER
 
 # TEMPLATE CONFIGURATION
@@ -127,15 +131,9 @@ DATABASES['default'] = env.db("DATABASE_URL")
 
 # CACHING
 # ------------------------------------------------------------------------------
-try:
-    # Only do this here because thanks to django-pylibmc-sasl and pylibmc
-    # memcacheify is painful to install on windows.
-    # See: https://github.com/rdegges/django-heroku-memcacheify
-    from memcacheify import memcacheify
-    CACHES = memcacheify()
-except ImportError:
-    CACHES = {
+CACHES = {
         'default': env.cache_url("DJANGO_CACHE_URL", default="memcache://127.0.0.1:11211"),
     }
+
 
 # Your production stuff: Below this line define 3rd party library settings

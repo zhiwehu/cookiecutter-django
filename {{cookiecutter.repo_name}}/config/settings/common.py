@@ -13,7 +13,7 @@ from __future__ import absolute_import, unicode_literals
 import environ
 
 ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
-APPS_DIR = ROOT_DIR.path('{{ cookiecutter.repo_name }}')
+APPS_DIR = ROOT_DIR.path('apps')
 
 env = environ.Env()
 
@@ -35,15 +35,12 @@ DJANGO_APPS = (
     'django.contrib.admin',
 )
 THIRD_PARTY_APPS = (
-    'crispy_forms',  # Form layouts
-    'allauth',  # registration
-    'allauth.account',  # registration
-    'allauth.socialaccount',  # registration
+
 )
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
-    '{{ cookiecutter.repo_name }}.users',  # custom users app
+    'apps.users',  # custom users app
     # Your stuff: custom apps go here
 )
 
@@ -65,7 +62,7 @@ MIDDLEWARE_CLASSES = (
 # MIGRATIONS CONFIGURATION
 # ------------------------------------------------------------------------------
 MIGRATION_MODULES = {
-    'sites': '{{ cookiecutter.repo_name }}.contrib.sites.migrations'
+    'sites': 'apps.contrib.sites.migrations'
 }
 
 # DEBUG
@@ -101,8 +98,13 @@ MANAGERS = ADMINS
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
+    {% if cookiecutter.database != 'postresql' -%}
     # Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
     'default': env.db("DATABASE_URL", default="postgres://localhost/{{cookiecutter.repo_name}}"),
+    {%- endif %}
+    {% if cookiecutter.database != 'mysql' -%}
+    'default': env.db("DATABASE_URL", default="mysql://{{cookiecutter.repo_name}}:password@localhost:3306/{{cookiecutter.repo_name}}"),
+    {%- endif %}
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 
@@ -135,8 +137,6 @@ USE_TZ = True
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
-    'allauth.account.context_processors.account',
-    'allauth.socialaccount.context_processors.socialaccount',
     'django.core.context_processors.debug',
     'django.core.context_processors.i18n',
     'django.core.context_processors.media',
@@ -156,9 +156,6 @@ TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 )
-
-# See: http://django-crispy-forms.readthedocs.org/en/latest/install.html#template-packs
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 # STATIC FILE CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -198,19 +195,18 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # ------------------------------------------------------------------------------
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
 # Some really nice defaults
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+#ACCOUNT_AUTHENTICATION_METHOD = 'username'
+#ACCOUNT_EMAIL_REQUIRED = True
+#ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 # Custom user app defaults
 # Select the correct user model
 AUTH_USER_MODEL = 'users.User'
-LOGIN_REDIRECT_URL = 'users:redirect'
-LOGIN_URL = 'account_login'
+#LOGIN_REDIRECT_URL = 'users:redirect'
+#LOGIN_URL = 'account_login'
 
 # SLUGLIFIER
 AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
@@ -224,12 +220,16 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
         }
     },
     'handlers': {
@@ -237,6 +237,11 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
         }
     },
     'loggers': {
@@ -245,6 +250,10 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        }
     }
 }
 

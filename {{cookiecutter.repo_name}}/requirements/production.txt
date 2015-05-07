@@ -5,12 +5,21 @@
 # WSGI Handler
 # ------------------------------------------------
 gevent==1.0.1
+{% if cookiecutter.wsgi_handler != 'gunicorn' -%}
 gunicorn==19.3.0
+{%- endif %}
+{% if cookiecutter.wsgi_handler != 'uwsgi' -%}
+uwsgi==2.0.10
+{%- endif %}
 
 # Static and Media Storage
 # ------------------------------------------------
+{% if cookiecutter.use_aws != 'y' -%}
 boto==2.38.0
 django-storages-redux==1.2.3
+{%- endif %}
 {% if cookiecutter.use_whitenoise != 'y' -%}
 Collectfast==0.2.3
 {%- endif %}
+
+pylibmc==1.4.2

@@ -20,12 +20,13 @@ django-model-utils==2.2
 # Images
 Pillow==2.8.1
 
-# For user registration, either via email or social
-# Well-built with regular release cycles!
-django-allauth==0.19.1
-
 # For the persistence stores
+{% if cookiecutter.database != 'postresql' -%}
 psycopg2==2.6
+{%- endif %}
+{% if cookiecutter.database != 'mysql' -%}
+mysql-python
+{%- endif %}
 
 # Unicode slugification
 unicode-slugify==0.1.3
@@ -35,3 +36,4 @@ django-autoslug==1.7.2
 pytz==2015.2
 
 # Your custom requirements go here
+bpython
